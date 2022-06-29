@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -32,6 +33,8 @@ import (
 type Options struct {
 	Config *restclient.Config
 	client kubernetes.Interface
+
+	targetDirectory string
 
 	Executor *DefaultRemoteExecutor
 	StreamOptions
@@ -78,11 +81,14 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 		Short: "Get the audit logs from the remote masters",
 		Run: func(cmd *cobra.Command, args []string) {
 			argsLenAtDash := cmd.ArgsLenAtDash()
-			cmdutil.CheckErr(options.Complete(f, cmd, args, argsLenAtDash))
 			cmdutil.CheckErr(options.Validate())
+			cmdutil.CheckErr(options.Complete(f, cmd, args, argsLenAtDash))
 			cmdutil.CheckErr(options.Run(ctx))
 		},
 	}
+
+	cmd.Flags().StringVarP(&options.targetDirectory, "output", "o", "", "Output directory to store the log")
+
 	return cmd
 }
 
@@ -97,6 +103,10 @@ func (o *Options) Complete(f cmdutil.Factory, cmd *cobra.Command, argsIn []strin
 		return err
 	}
 	o.client = clientset
+
+	if err := os.MkdirAll(o.targetDirectory, os.ModePerm); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -128,7 +138,6 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	t := o.SetupTTY()
 	sizeQueue := t.MonitorSize(t.GetSize())
 
@@ -147,7 +156,9 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 		Command:   []string{"/bin/bash", "-c", "cd /var/log/kube-apiserver && tar -czO audit-*"},
 	}, scheme.ParameterCodec)
 
-	rotatedAuditFile, err := ioutil.TempFile(os.TempDir(), apiserverName)
+	apiServerTargetDirectory := filepath.Join(o.targetDirectory, apiserverName)
+
+	rotatedAuditFile, err := ioutil.TempFile(apiServerTargetDirectory, "rotated-audit-logs")
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +166,6 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 	noRotateLogs := false
 	if err := o.Executor.Execute("POST", rotatedRequest.URL(), o.Config, o.In, rotatedAuditFile, o.ErrOut, t.Raw, sizeQueue); err != nil {
 		if strings.Contains(err.Error(), "command terminated with exit code 2") {
-			klog.Errorf("WARNING: No rotated audit logs found for API server %q", apiserverName)
 			noRotateLogs = true
 		} else {
 			return nil, fmt.Errorf("failed to get rotated audit logs for %s: %v", apiserverName, err)
@@ -163,7 +173,6 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 	}
 
 	if !noRotateLogs {
-		klog.Infof("Copied rotated audit files for %q to %q", apiserverName, rotatedAuditFile.Name())
 		files = append(files, rotatedAuditFile.Name())
 	}
 
@@ -180,7 +189,7 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 		Command:   []string{"/bin/bash", "-c", "cd /tmp && cp --remove-destination /var/log/kube-apiserver/audit.log audit.log && tar -czO audit.log && rm -f audit.log"},
 	}, scheme.ParameterCodec)
 
-	liveAuditFile, err := ioutil.TempFile(os.TempDir(), apiserverName)
+	liveAuditFile, err := ioutil.TempFile(apiServerTargetDirectory, "audit-log")
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +198,6 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 		return nil, err
 	}
 	files = append(files, liveAuditFile.Name())
-	klog.Infof("Copied live audit file for %q to %q", apiserverName, liveAuditFile.Name())
 
 	return files, nil
 }
@@ -199,18 +207,23 @@ func (o *Options) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	klog.Infof("Got Kubernetes API server pods: %s", strings.Join(pods, ","))
+	klog.V(4).Infof("Got Kubernetes API server pods: %s", strings.Join(pods, ","))
 
 	for _, p := range pods {
-		klog.Infof("Getting audit logs for %s ...", p)
+		klog.V(4).Infof("Getting audit logs for %s ...", p)
 		_, err := o.getAPIServerLogs(p)
 		if err != nil {
 			return err
 		}
 	}
+
+	klog.Infof("Audit logs successfully downloaded to %s", o.targetDirectory)
 	return nil
 }
 
 func (o *Options) Validate() error {
+	if len(o.targetDirectory) == 0 {
+		return fmt.Errorf("output directory must be set")
+	}
 	return nil
 }

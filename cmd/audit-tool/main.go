@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/mfojtik/audit-tool/pkg/cmd/query"
+
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
@@ -60,6 +62,7 @@ func NewAuditToolCommand(ctx context.Context) *cobra.Command {
 	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 
 	cmd.AddCommand(get.NewCommand(ctx, f, ioStreams))
+	cmd.AddCommand(query.NewCommand(ctx, f, ioStreams))
 
 	return cmd
 }
