@@ -8,13 +8,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/mfojtik/audit-tool/pkg/cmd/query"
+	"github.com/natamm4/audit-tool/pkg/cmd/query"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 
-	"github.com/mfojtik/audit-tool/pkg/cmd/get"
+	"github.com/natamm4/audit-tool/pkg/cmd/get"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

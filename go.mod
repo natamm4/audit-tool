@@ -1,4 +1,4 @@
-module github.com/mfojtik/audit-tool
+module github.com/natamm4/audit-tool
 
 go 1.16
 

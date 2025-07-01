@@ -7,7 +7,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/mfojtik/audit-tool/pkg/audit/filter"
+	"github.com/natamm4/audit-tool/pkg/audit/filter"
 
 	jsoniter "github.com/json-iterator/go"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"

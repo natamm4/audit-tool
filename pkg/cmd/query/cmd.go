@@ -17,7 +17,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 
-	"github.com/mfojtik/audit-tool/pkg/audit/filter"
+	"github.com/natamm4/audit-tool/pkg/audit/filter"
 )
 
 type Options struct {
@@ -76,7 +76,7 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 	cmd.Flags().StringSliceVar(&options.users, "user", options.users, "Filter result of search to only contain the specified user.)")
 	cmd.Flags().StringVar(&options.topBy, "by", options.topBy, "Switch the top output format (eg. -o top -by [verb,user,resource,httpstatus,namespace]).")
 	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Specify the output format (e.g. 'openmetrics', 'default')")
-	cmd.Flags().BoolVar(&options.failedOnly, "failed-only", false, "Filter result of search to only contain http failures.)")
+	cmd.Flags().BoolVar(&options.failedOnly, "failed-only", false, "Filter result of search to only contain http failures.")
 	cmd.Flags().Int32SliceVar(&options.httpStatusCodes, "http-status-code", options.httpStatusCodes, "Filter result of search to only certain http status codes (200,429).")
 	cmd.Flags().StringSliceVarP(&options.stages, "stage", "s", options.stages, "Filter result by event stage (eg. 'RequestReceived', 'ResponseComplete'), if omitted all stages will be included)")
 	cmd.Flags().StringVar(&options.duration, "duration", options.duration, "Filter all requests that didn't take longer than the specified timeout to complete. Keep in mind that requests usually don't take exactly the specified time. Adding a second or two should give you what you want.")

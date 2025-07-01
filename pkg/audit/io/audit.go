@@ -17,7 +17,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/mfojtik/audit-tool/pkg/audit/filter"
+	"github.com/natamm4/audit-tool/pkg/audit/filter"
 
 	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/klog/v2"
