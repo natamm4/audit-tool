@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -125,7 +124,7 @@ func (o *Options) findAPIServerPods(ctx context.Context) ([]string, error) {
 			if c.Name != "kube-apiserver" {
 				continue
 			}
-			if c.State.Running != nil && c.Ready == true {
+			if c.State.Running != nil && c.Ready {
 				result = append(result, p.Name)
 			}
 		}
@@ -158,7 +157,7 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 
 	apiServerTargetDirectory := filepath.Join(o.targetDirectory, apiserverName)
 
-	rotatedAuditFile, err := ioutil.TempFile(apiServerTargetDirectory, "rotated-audit-logs")
+	rotatedAuditFile, err := os.CreateTemp(apiServerTargetDirectory, "rotated-audit-logs")
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +188,7 @@ func (o *Options) getAPIServerLogs(apiserverName string) ([]string, error) {
 		Command:   []string{"/bin/bash", "-c", "cd /tmp && cp --remove-destination /var/log/kube-apiserver/audit.log audit.log && tar -czO audit.log && rm -f audit.log"},
 	}, scheme.ParameterCodec)
 
-	liveAuditFile, err := ioutil.TempFile(apiServerTargetDirectory, "audit-log")
+	liveAuditFile, err := os.CreateTemp(apiServerTargetDirectory, "audit-log")
 	if err != nil {
 		return nil, err
 	}
