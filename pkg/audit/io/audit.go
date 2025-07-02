@@ -306,7 +306,7 @@ func getEventFromManyFiles(auditFilenames ...string) ([]*auditv1.Event, int, err
 		}
 
 		localEvents, localFailures, localErr := getEventsFromDirectory(auditFilename)
-		if err != nil {
+		if localErr != nil {
 			return nil, 0, localErr
 		}
 		failures += localFailures

@@ -22,7 +22,7 @@ type AuditFilter interface {
 type AuditFilters []AuditFilter
 
 func (f AuditFilters) FilterEvents(events ...*auditv1.Event) []*auditv1.Event {
-	ret := make([]*auditv1.Event, len(events), len(events))
+	ret := make([]*auditv1.Event, len(events))
 	copy(ret, events)
 
 	for _, filter := range f {
