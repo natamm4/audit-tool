@@ -52,15 +52,23 @@ func printEvent(e *auditv1.Event) string {
 }
 
 func printOpenMetrics(events []*auditv1.Event, w io.Writer) error {
-	fmt.Fprintln(w, "# TYPE audit_event_total counter")
+	counts := map[string]int{}
+
 	for _, e := range events {
 		user := e.User.Username
 		verb := e.Verb
-		code := int32(0)
-		if e.ResponseStatus != nil {
-			code = e.ResponseStatus.Code
-		}
-		fmt.Fprintf(w, "audit_event_total{user=\"%s\",verb=\"%s\",code=\"%d\"} 1\n", user, verb, code)
+		code := e.ResponseStatus.Code
+
+		key := fmt.Sprintf("%s|%s|%d", user, verb, code)
+		counts[key]++
+	}
+
+	fmt.Fprintf(w, "# TYPE audit_event_total counter\n")
+	for key, count := range counts {
+		parts := strings.Split(key, "|")
+		user, verb, code := parts[0], parts[1], parts[2]
+
+		fmt.Fprintf(w, "audit_event_total{user=\"%s\",verb=\"%s\",code=\"%s\"} %d\n", user, verb, code, count)
 	}
 	return nil
 }
