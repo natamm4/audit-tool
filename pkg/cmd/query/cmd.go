@@ -59,26 +59,26 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 		},
 	}
 
-	cmd.Flags().StringVarP(&options.targetDirectory, "dir", "d", "", "Directory to read the audit files from")
+	cmd.Flags().StringVarP(&options.targetDirectory, "dir", "d", "", "Directory to read the audit files from.")
 	cmd.Flags().StringSliceVar(&options.nodes, "nodes", []string{}, "Specify nodes to query audit events. Empty means all nodes.")
-	cmd.Flags().BoolVarP(&options.stats, "stats", "", false, "Display stats from provided directory (start/end times, nodes, etc.")
-	cmd.Flags().Int64VarP(&options.limit, "limit", "", 0, "Limit the amount of events to display")
+	cmd.Flags().BoolVarP(&options.stats, "stats", "", false, "Display stats from provided directory (e.g. start/end times, nodes, etc.).")
+	cmd.Flags().Int64VarP(&options.limit, "limit", "", 0, "Limit the amount of events to display.")
 
-	cmd.Flags().StringVar(&options.from, "from", "", "Only query events starting at this time (eg: '2006-01-02 15:03:04')")
-	cmd.Flags().StringVar(&options.to, "to", "", "Only query events before this time (eg: '2006-01-02 15:03:04')")
+	cmd.Flags().StringVar(&options.from, "from", "", "Only query events starting at this time (eg: '2006-01-02 15:03:04').")
+	cmd.Flags().StringVar(&options.to, "to", "", "Only query events before this time (eg: '2006-01-02 15:03:04').")
 
-	cmd.Flags().StringSliceVar(&options.uids, "uid", options.uids, "Only match specific UIDs")
-	cmd.Flags().StringSliceVar(&options.verbs, "verb", options.verbs, "Filter result of search to only contain the specified verb (eg. 'update', 'get', etc..)")
-	cmd.Flags().StringSliceVar(&options.resources, "resource", options.resources, "Filter result of search to only contain the specified resource.)")
-	cmd.Flags().StringSliceVar(&options.subresources, "subresource", options.subresources, "Filter result of search to only contain the specified subresources.  \"-*\" means no subresource)")
+	cmd.Flags().StringSliceVar(&options.uids, "uid", options.uids, "Only match specific UIDs.")
+	cmd.Flags().StringSliceVar(&options.verbs, "verb", options.verbs, "Filter result of search to only contain the specified verb (eg. 'update', 'get', etc.).")
+	cmd.Flags().StringSliceVar(&options.resources, "resource", options.resources, "Filter result of search to only contain the specified resource.")
+	cmd.Flags().StringSliceVar(&options.subresources, "subresource", options.subresources, "Filter result of search to only contain the specified subresources. \"-*\" means no subresource.")
 	cmd.Flags().StringSliceVarP(&options.namespaces, "namespace", "n", options.namespaces, "Filter result of search to only contain the specified namespace.")
-	cmd.Flags().StringSliceVar(&options.names, "name", options.names, "Filter result of search to only contain the specified name.)")
-	cmd.Flags().StringSliceVar(&options.users, "user", options.users, "Filter result of search to only contain the specified user.)")
+	cmd.Flags().StringSliceVar(&options.names, "name", options.names, "Filter result of search to only contain the specified name.")
+	cmd.Flags().StringSliceVar(&options.users, "user", options.users, "Filter result of search to only contain the specified user.")
 	cmd.Flags().StringVar(&options.topBy, "by", options.topBy, "Switch the top output format (eg. -o top -by [verb,user,resource,httpstatus,namespace]).")
-	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Specify the output format (e.g. 'openmetrics', 'default')")
+	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Specify the output format (e.g. 'openmetrics', 'default').")
 	cmd.Flags().BoolVar(&options.failedOnly, "failed-only", false, "Filter result of search to only contain http failures.")
 	cmd.Flags().Int32SliceVar(&options.httpStatusCodes, "http-status-code", options.httpStatusCodes, "Filter result of search to only certain http status codes (200,429).")
-	cmd.Flags().StringSliceVarP(&options.stages, "stage", "s", options.stages, "Filter result by event stage (eg. 'RequestReceived', 'ResponseComplete'), if omitted all stages will be included)")
+	cmd.Flags().StringSliceVarP(&options.stages, "stage", "s", options.stages, "Filter result by event stage (eg. 'RequestReceived', 'ResponseComplete'). If omitted all stages will be included.")
 	cmd.Flags().StringVar(&options.duration, "duration", options.duration, "Filter all requests that didn't take longer than the specified timeout to complete. Keep in mind that requests usually don't take exactly the specified time. Adding a second or two should give you what you want.")
 	return cmd
 }
