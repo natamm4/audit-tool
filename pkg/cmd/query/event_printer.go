@@ -1,6 +1,8 @@
 package query
 
 import (
+	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -47,4 +49,18 @@ func printElapsedTime(e *auditv1.Event) string {
 
 func printEvent(e *auditv1.Event) string {
 	return pterm.Sprintf("[ %s ][ %s ][ %3s ] %s [%s]%s", printTime(e.RequestReceivedTimestamp.Time), pterm.NewStyle(pterm.FgLightWhite).Sprintf("%6s", strings.ToUpper(e.Verb)), printResponseCode(e.ResponseStatus.Code), printRequestURI(e.RequestURI), printUser(e), printElapsedTime(e))
+}
+
+func printOpenMetrics(events []*auditv1.Event, w io.Writer) error {
+	fmt.Fprintln(w, "# TYPE audit_event_total counter")
+	for _, e := range events {
+		user := e.User.Username
+		verb := e.Verb
+		code := int32(0)
+		if e.ResponseStatus != nil {
+			code = e.ResponseStatus.Code
+		}
+		fmt.Fprintf(w, "audit_event_total{user=\"%s\",verb=\"%s\",code=\"%d\"} 1\n", user, verb, code)
+	}
+	return nil
 }

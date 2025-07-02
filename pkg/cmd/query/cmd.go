@@ -265,7 +265,7 @@ func (o Options) Run(ctx context.Context) error {
 
 	switch o.output {
 	case "openmetrics":
-		return PrintOpenMetrics(events, os.Stdout)
+		return printOpenMetrics(events, os.Stdout)
 	default:
 		for i, e := range events {
 			if o.limit > 0 && i > int(o.limit) {
