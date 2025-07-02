@@ -112,7 +112,7 @@ const timeDefaultFormat = "2006-01-02 15:04:05"
 func parseTime(s string) time.Time {
 	t, err := time.Parse(timeDefaultFormat, s)
 	if err != nil {
-		log.Fatal("invalid time format: %q, use %q", s, timeDefaultFormat)
+		log.Fatalf("invalid time format: %q, use %q", s, timeDefaultFormat)
 	}
 	return t
 }
@@ -127,7 +127,7 @@ func (o Options) runStats() error {
 	for _, n := range nodes {
 		list = append(list, pterm.BulletListItem{
 			Level: 0,
-			Text:  fmt.Sprintf("%s", pterm.NewStyle(pterm.BgBlack, pterm.FgLightWhite).Sprintf(n)),
+			Text:  pterm.NewStyle(pterm.BgBlack, pterm.FgLightWhite).Sprintf(n),
 		})
 		list = append(list, pterm.BulletListItem{
 			Level: 1,
@@ -242,7 +242,7 @@ func (o Options) setupFilters() (filter.AuditFilters, error) {
 		if err != nil {
 			return nil, err
 		}
-		filters = append(filters, &filter.FilterByDuration{d})
+		filters = append(filters, &filter.FilterByDuration{Duration: d})
 	}
 
 	return filters, nil
