@@ -51,7 +51,7 @@ func printEvent(e *auditv1.Event) string {
 	return pterm.Sprintf("[ %s ][ %s ][ %3s ] %s [%s]%s", printTime(e.RequestReceivedTimestamp.Time), pterm.NewStyle(pterm.FgLightWhite).Sprintf("%6s", strings.ToUpper(e.Verb)), printResponseCode(e.ResponseStatus.Code), printRequestURI(e.RequestURI), printUser(e), printElapsedTime(e))
 }
 
-func printOpenMetrics(events []*auditv1.Event, w io.Writer) error {
+func printOpenMetricsCounts(events []*auditv1.Event, w io.Writer) error {
 	counts := map[string]int{}
 
 	for _, e := range events {
@@ -69,6 +69,20 @@ func printOpenMetrics(events []*auditv1.Event, w io.Writer) error {
 		user, verb, code := parts[0], parts[1], parts[2]
 
 		fmt.Fprintf(w, "audit_event_total{user=\"%s\",verb=\"%s\",code=\"%s\"} %d\n", user, verb, code, count)
+	}
+	return nil
+}
+
+func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
+	fmt.Fprintln(w, "# TYPE audit_event_timestamp gauge")
+
+	for _, e := range events {
+		user := e.User.Username
+		verb := e.Verb
+		code := e.ResponseStatus.Code
+		timeStamp := e.RequestReceivedTimestamp.UnixMilli()
+
+		fmt.Fprintf(w, "audit_event_timestamp{user=\"%s\",verb=\"%s\",code=\"%d\"} %d\n", user, verb, code, timeStamp)
 	}
 	return nil
 }

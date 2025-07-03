@@ -75,7 +75,7 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 	cmd.Flags().StringSliceVar(&options.names, "name", options.names, "Filter result of search to only contain the specified name.")
 	cmd.Flags().StringSliceVar(&options.users, "user", options.users, "Filter result of search to only contain the specified user.")
 	cmd.Flags().StringVar(&options.topBy, "by", options.topBy, "Switch the top output format (eg. -o top -by [verb,user,resource,httpstatus,namespace]).")
-	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Specify the output format (e.g. 'openmetrics', 'default').")
+	cmd.Flags().StringVarP(&options.output, "output", "o", options.output, "Specify the output format (e.g. 'openmetricsTime', 'openmetricsCount', 'default').")
 	cmd.Flags().BoolVar(&options.failedOnly, "failed-only", false, "Filter result of search to only contain http failures.")
 	cmd.Flags().Int32SliceVar(&options.httpStatusCodes, "http-status-code", options.httpStatusCodes, "Filter result of search to only certain http status codes (200,429).")
 	cmd.Flags().StringSliceVarP(&options.stages, "stage", "s", options.stages, "Filter result by event stage (eg. 'RequestReceived', 'ResponseComplete'). If omitted all stages will be included.")
@@ -264,8 +264,10 @@ func (o Options) Run(ctx context.Context) error {
 	}
 
 	switch o.output {
-	case "openmetrics":
-		return printOpenMetrics(events, os.Stdout)
+	case "openmetricsCount":
+		return printOpenMetricsCounts(events, os.Stdout)
+	case "openmetricsTime":
+		return printOpenMetricsTimestamps(events, os.Stdout)
 	default:
 		for i, e := range events {
 			if o.limit > 0 && i > int(o.limit) {
