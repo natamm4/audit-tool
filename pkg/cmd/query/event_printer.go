@@ -89,13 +89,18 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 		timeStamp := e.RequestReceivedTimestamp.Time.Unix()
 
 		resource := ""
+		subresource := ""
 		name := ""
+		namespace := ""
+
 		if e.ObjectRef != nil {
 			resource = e.ObjectRef.Resource
 			name = e.ObjectRef.Name
+			namespace = e.ObjectRef.Namespace
+			subresource = e.ObjectRef.Subresource
 		}
 
-		fmt.Fprintf(w, "audit_event_timestamp{user=\"%s\",verb=\"%s\", resource=\"%s\", name=\"%s\", code=\"%d\"} 1 %d\n", user, verb, resource, name, code, timeStamp)
+		fmt.Fprintf(w, "audit_event_timestamp{user=\"%s\",verb=\"%s\", resource=\"%s\", subresource=\"%s\", name=\"%s\", namespace=\"%s\", code=\"%d\"} 1 %d\n", user, verb, resource, subresource, name, namespace, code, timeStamp)
 	}
 	fmt.Fprintln(w, "# EOF")
 	return nil
