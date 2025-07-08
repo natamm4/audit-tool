@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -75,6 +76,11 @@ func printOpenMetricsCounts(events []*auditv1.Event, w io.Writer) error {
 
 func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 	fmt.Fprintln(w, "# TYPE audit_event_timestamp gauge")
+
+	// Sort events by RequestReceivedTimestamp
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].RequestReceivedTimestamp.Time.Before(events[j].RequestReceivedTimestamp.Time)
+	})
 
 	for _, e := range events {
 		user := e.User.Username
