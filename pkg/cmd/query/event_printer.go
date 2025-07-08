@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/natamm4/audit-tool/pkg/audit/filter"
 	"github.com/pterm/pterm"
 
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
@@ -88,7 +89,15 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 		code := e.ResponseStatus.Code
 		timeStamp := e.RequestReceivedTimestamp.Time.Unix()
 
-		fmt.Fprintf(w, "audit_event_timestamp{user=\"%s\",verb=\"%s\",code=\"%d\"} 1 %d\n", user, verb, code, timeStamp)
+		resource := ""
+		if e.ObjectRef != nil {
+			resource = e.ObjectRef.Resource
+		} else {
+			_, gvr, _, _ := filter.URIToParts(e.RequestURI)
+			resource = gvr.Resource
+		}
+
+		fmt.Fprintf(w, "audit_event_timestamp{user=\"%s\",verb=\"%s\",resource=\"%s\",code=\"%d\"} 1 %d\n", user, verb, resource, code, timeStamp)
 	}
 	fmt.Fprintln(w, "# EOF")
 	return nil
