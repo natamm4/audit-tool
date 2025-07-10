@@ -61,3 +61,26 @@ This guide outlines the steps to collect audit logs, process them with audit-too
 
 7. Query your audit data!
    
+---
+
+## Example Queries
+
+Once Prometheus is running, you can use PromQL to analyze your audit logs:
+
+#### To discover who was creating watches:
+
+```bash
+count(audit_event_timestamp{verb="watch"}) by (user)
+```
+
+#### To see etcd endpoint updates:
+
+```bash
+count(audit_event_timestamp{verb="update", resource="configmaps", name="etcd-endpoints"}) by (user)
+```
+
+#### To see who was listing pods frequently:
+
+```bash
+count(audit_event_timestamp{verb="list",resource="pods"}) by (user)
+```
