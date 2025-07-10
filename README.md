@@ -61,7 +61,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
 
    #### Option B: Run Prometheus in a Podman or Docker Container
 
-   You can use the official Prometheus DOcker image and mount your prom-blocks/ directory. Ensure you are in the directory containing your prom-blocks folder.
+   You can use the official Prometheus Docker image and mount your prom-blocks/ directory. Ensure you are in the directory containing your prom-blocks folder.
 
    ```bash
    # For Podman:
