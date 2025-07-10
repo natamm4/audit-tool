@@ -20,18 +20,18 @@ go install [github.com/natamm4/audit-tool/cmd/audit-tool@latest](https://github.
 
 This guide outlines the steps to collect audit logs, process them with audit-tool, and query them using Prometheus.
 
-1. Change to your desired working directory:
+#### 1. Change to your desired working directory:
 
    ```bash
    cd /wherever/you/want
    ```
-2. Gather Audit Logs:
+#### 2. Gather Audit Logs:
 
    ```bash
    oc adm must-gather -- /usr/bin/gather_audit_logs
    ```
 
-3. Process Audit Logs with audit-tool:
+#### 3. Process Audit Logs with audit-tool:
 
    Convert the collected audit logs into OpenMetrics format.
 
@@ -39,7 +39,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
       audit-tool query --dir /path/to/audit_logs/kube-apiserver --output openmetricsTime > auditlogs.openmetrics
    ```
 
-4. Create Prometheus TSDB Blocks:
+#### 4. Create Prometheus TSDB Blocks:
 
    Use promtool to create Prometheus TSDB blocks from the OpenMetrics output.
 
@@ -47,11 +47,11 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    promtool tsdb create-blocks-from openmetrics auditlogs.openmetrics prom-blocks/
    ```
 
-5. Start Prometheus:
+#### 5. Start Prometheus:
 
    You have two options for running Prometheus: directly on your host or in a Podman/Docker container.
 
-   ### Option A: Run Prometheus Directly
+   #### Option A: Run Prometheus Directly
    
    Launch a Prometheus instance, pointing it to the newly created TSDB blocks.
 
@@ -59,7 +59,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    prometheus --storage.tsdb.path=/path/to/prom-blocks/
    ```
 
-   ### Option B: Run Prometheus in a Podman or Docker Container
+   #### Option B: Run Prometheus in a Podman or Docker Container
 
    You can use the official Prometheus DOcker image and mount your prom-blocks/ directory. Ensure you are in the directory containing your prom-blocks folder.
 
@@ -77,11 +77,11 @@ This guide outlines the steps to collect audit logs, process them with audit-too
      --storage.tsdb.path=/prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver
    ```
 
-7. Access Prometheus UI:
+#### 7. Access Prometheus UI:
 
    Open your web browser and navigate to http://localhost:9090.
 
-8. Query your audit data!
+#### 8. Query your audit data!
    
 ---
 
@@ -89,19 +89,19 @@ This guide outlines the steps to collect audit logs, process them with audit-too
 
 You can also gather additional metrics for more comprehensive analysis:
 
-1. Gather Audit Logs and Additional Metrics:
+#### 1. Gather Audit Logs and Additional Metrics:
 
    ```bash
    oc adm must-gather -- "/usr/bin/gather_audit_logs && /usr/bin/gather_etcd_more"
    ```
 
-2. Decompress the metrics.openmetrics must-gather file:
+#### 2. Decompress the metrics.openmetrics must-gather file:
 
    ```bash
    gunzip -k /path/to/etcd_info/metrics.openmetrics.gz
    ```
 
-3. Create Prometheus TSDB Blocks from decompressed metrics.openmetrics file:
+#### 3. Create Prometheus TSDB Blocks from decompressed metrics.openmetrics file:
 
    Use promtool to create Prometheus TSDB blocks from this file.
 
@@ -109,7 +109,7 @@ You can also gather additional metrics for more comprehensive analysis:
    promtool tsdb create-blocks-from openmetrics /path/to/must-gather/metrics.openmetrics prom-blocks/
    ```
    
-4. Follow steps 3-7 from above, ensuring to create the auditlogs.openmetrics TSDB blocks in the same prom-blocks/ directory as where the TSDB blocks for the metrics.openmetrics were made.
+#### 4. Follow steps 3-7 from above, ensuring to create the auditlogs.openmetrics TSDB blocks in the same prom-blocks/ directory as where the TSDB blocks for the metrics.openmetrics were made.
 
 ---
 
