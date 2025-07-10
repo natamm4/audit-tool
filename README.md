@@ -1,6 +1,6 @@
 # audit-tool: Kubernetes Audit Log Analysis Tool
 
-The `audit-tool` allows you to analyze Kubernetes API server audit logs by converting them into a Prometheus-compatible format, enabling powerful querying with PromQL.
+The `audit-tool` allows you to analyze Kubernetes API server audit logs by converting them into a Prometheus-compatible format, enabling querying with PromQL.
 
 ---
 
