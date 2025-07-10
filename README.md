@@ -103,7 +103,7 @@ You can also gather additional metrics for more comprehensive analysis:
    gunzip -k /path/to/etcd_info/metrics.openmetrics.gz
    ```
 
-3. Create Prometheus TSDB Blocks from extra must-gather metrics.openmetrics file:
+3. Create Prometheus TSDB Blocks from decompressed metrics.openmetrics file:
 
    Use promtool to create Prometheus TSDB blocks from this file.
 
