@@ -111,4 +111,4 @@ You can also gather additional metrics for more comprehensive analysis:
    promtool tsdb create-blocks-from openmetrics /path/to/must-gather/metrics.openmetrics prom-blocks/
    ```
    
-4. Follow steps 3-7 from above, ensuring to save the auditlogs.openmetrics TSDB blocks in the same prom-blocks dir as the one above.
+4. Follow steps 3-7 from above, ensuring to create the auditlogs.openmetrics TSDB blocks in the same prom-blocks/ directory as where the TSDB blocks for the metrics.openmetrics were made.
