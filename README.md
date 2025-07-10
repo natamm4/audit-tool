@@ -63,30 +63,6 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    
 ---
 
-## Example Queries
-
-Once Prometheus is running, you can use PromQL to analyze your audit logs:
-
-#### To discover who was creating watches:
-
-```bash
-count(audit_event_timestamp{verb="watch"}) by (user)
-```
-
-#### To see etcd endpoint updates:
-
-```bash
-count(audit_event_timestamp{verb="update", resource="configmaps", name="etcd-endpoints"}) by (user)
-```
-
-#### To see who was listing pods frequently:
-
-```bash
-count(audit_event_timestamp{verb="list",resource="pods"}) by (user)
-```
-
----
-
 ## Usage With Extra Must-Gather Metrics
 
 You can also gather additional metrics for more comprehensive analysis:
@@ -112,3 +88,42 @@ You can also gather additional metrics for more comprehensive analysis:
    ```
    
 4. Follow steps 3-7 from above, ensuring to create the auditlogs.openmetrics TSDB blocks in the same prom-blocks/ directory as where the TSDB blocks for the metrics.openmetrics were made.
+
+---
+
+## Queryable
+
+Once Prometheus is running, you can use PromQL to analyze your audit logs. The following are the bits of info queryable for the audit events:
+
+- verb (eg. 'update', 'get', etc.)
+- resource (eg. 'pods')
+- subresource
+- name (eg. 'etcd-endpoints')
+- namespace 
+- user
+- uid
+- code (http status code eg. 200)
+- stage (eg. 'RequestReceived', 'ResponseComplete')
+- duration 
+
+---
+
+## Example Queries
+
+#### To discover who was creating watches:
+
+```bash
+count(audit_event_timestamp{verb="watch"}) by (user)
+```
+
+#### To see etcd endpoint updates:
+
+```bash
+count(audit_event_timestamp{verb="update", resource="configmaps", name="etcd-endpoints"}) by (user)
+```
+
+#### To see who was listing pods frequently:
+
+```bash
+count(audit_event_timestamp{verb="list",resource="pods"}) by (user)
+```
