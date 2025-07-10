@@ -49,17 +49,39 @@ This guide outlines the steps to collect audit logs, process them with audit-too
 
 5. Start Prometheus:
 
+   You have two options for running Prometheus: directly on your host or in a Podman/Docker container.
+
+   ### Option A: Run Prometheus Directly
+   
    Launch a Prometheus instance, pointing it to the newly created TSDB blocks.
 
    ```bash
    prometheus --storage.tsdb.path=/path/to/prom-blocks/
    ```
 
-6. Access Prometheus UI:
+   ### Option B: Run Prometheus in a Podman or Docker Container
+
+   You can use the official Prometheus DOcker image and mount your prom-blocks/ directory. Ensure you are in the directory containing your prom-blocks folder.
+
+   ```bash
+   # For Podman:
+   podman run -d --name audit-prometheus -p 9090:9090 \
+     -v "$(pwd)/prom-blocks:/prometheus" \
+     quay.io/prometheus/prometheus:latest \
+     --storage.tsdb.path=/prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver
+
+   # For Docker:
+   docker run -d --name audit-prometheus -p 9090:9090 \
+     -v "$(pwd)/prom-blocks:/prometheus" \
+     quay.io/prometheus/prometheus:latest \
+     --storage.tsdb.path=/prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-remote-write-receiver
+   ```
+
+7. Access Prometheus UI:
 
    Open your web browser and navigate to http://localhost:9090.
 
-7. Query your audit data!
+8. Query your audit data!
    
 ---
 
