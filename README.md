@@ -36,7 +36,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    Convert the collected audit logs into OpenMetrics format.
 
    ```bash
-      audit-tool query --dir /path/to/audit_logs/kube-apiserver --output openmetricsTime > metrics.out
+      audit-tool query --dir /path/to/audit_logs/kube-apiserver --output openmetricsTime > auditlogs.openmetrics
    ```
 
 4. Create Prometheus TSDB Blocks:
@@ -44,7 +44,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    Use promtool to create Prometheus TSDB blocks from the OpenMetrics output.
 
    ```bash
-   promtool tsdb create-blocks-from openmetrics metrics.out prom-blocks/
+   promtool tsdb create-blocks-from openmetrics auditlogs.openmetrics prom-blocks/
    ```
 
 5. Start Prometheus:
@@ -84,3 +84,31 @@ count(audit_event_timestamp{verb="update", resource="configmaps", name="etcd-end
 ```bash
 count(audit_event_timestamp{verb="list",resource="pods"}) by (user)
 ```
+
+---
+
+## Usage With Extra Must-Gather Metrics
+
+You can also gather additional metrics for more comprehensive analysis:
+
+1. Gather Audit Logs and Additional Metrics:
+
+   ```bash
+   oc adm must-gather -- "/usr/bin/gather_audit_logs && /usr/bin/gather_etcd_more"
+   ```
+
+2. Decompress the metrics.openmetrics must-gather file:
+
+   ```bash
+   gunzip -k /path/to/etcd_info/metrics.openmetrics.gz
+   ```
+
+3. Create Prometheus TSDB Blocks from extra must-gather metrics.openmetrics file:
+
+   Use promtool to create Prometheus TSDB blocks from this file.
+
+   ```bash
+   promtool tsdb create-blocks-from openmetrics /path/to/must-gather/metrics.openmetrics prom-blocks/
+   ```
+   
+4. Follow steps 3-7 from above, ensuring to save the auditlogs.openmetrics TSDB blocks in the same prom-blocks dir as the one above.
