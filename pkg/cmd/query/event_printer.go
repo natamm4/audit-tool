@@ -86,7 +86,7 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 		user := e.User.Username
 		verb := e.Verb
 		code := e.ResponseStatus.Code
-		timeStamp := e.RequestReceivedTimestamp.Time.Unix()
+		timeStamp := e.RequestReceivedTimestamp.Time.UnixMilli()
 		stage := e.Stage
 		duration := e.StageTimestamp.Sub(e.RequestReceivedTimestamp.Time).Seconds()
 
