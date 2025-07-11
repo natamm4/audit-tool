@@ -36,7 +36,7 @@ This guide outlines the steps to collect audit logs, process them with audit-too
    Convert the collected audit logs into OpenMetrics format.
 
    ```bash
-      audit-tool query --dir /path/to/audit_logs/kube-apiserver --output openmetricsTime > auditlogs.openmetrics
+   audit-tool query --dir /path/to/audit_logs/kube-apiserver --output openmetricsTime > auditlogs.openmetrics
    ```
 
 #### 4. Create Prometheus TSDB Blocks:
