@@ -104,7 +104,7 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 			uid = string(e.ObjectRef.UID)
 		}
 
-		fmt.Fprintf(w, "audit_event_duration_seconds{user=\"%s\",verb=\"%s\",resource=\"%s\",subresource=\"%s\",name=\"%s\",namespace=\"%s\",uid=\"%s\",stage=\"%s\",code=\"%d\"} %d %d\n", user, verb, resource, subresource, name, namespace, uid, stage, code, duration, timeStamp)
+		fmt.Fprintf(w, "audit_event_duration_seconds{user=\"%s\",verb=\"%s\",resource=\"%s\",subresource=\"%s\",name=\"%s\",namespace=\"%s\",uid=\"%s\",stage=\"%s\",code=\"%d\"} %f %d\n", user, verb, resource, subresource, name, namespace, uid, stage, code, duration, timeStamp)
 	}
 	fmt.Fprintln(w, "# EOF")
 	return nil
