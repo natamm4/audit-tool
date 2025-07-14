@@ -86,9 +86,9 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 		user := e.User.Username
 		verb := e.Verb
 		code := e.ResponseStatus.Code
-		timeStamp := e.RequestReceivedTimestamp.Time.UnixMilli()
+		timeStamp := e.RequestReceivedTimestamp.Time.Unix()
 		stage := e.Stage
-		duration := e.StageTimestamp.Sub(e.RequestReceivedTimestamp.Time).Seconds()
+		// duration := e.StageTimestamp.Sub(e.RequestReceivedTimestamp.Time).Seconds()
 
 		resource := ""
 		subresource := ""
@@ -104,7 +104,7 @@ func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
 			uid = string(e.ObjectRef.UID)
 		}
 
-		fmt.Fprintf(w, "audit_event_duration_seconds{user=\"%s\",verb=\"%s\",resource=\"%s\",subresource=\"%s\",name=\"%s\",namespace=\"%s\",uid=\"%s\",stage=\"%s\",code=\"%d\"} %f %d\n", user, verb, resource, subresource, name, namespace, uid, stage, code, duration, timeStamp)
+		fmt.Fprintf(w, "audit_event_duration_seconds{user=\"%s\",verb=\"%s\",resource=\"%s\",subresource=\"%s\",name=\"%s\",namespace=\"%s\",uid=\"%s\",stage=\"%s\",code=\"%d\"} 1 %d\n", user, verb, resource, subresource, name, namespace, uid, stage, code, timeStamp)
 	}
 	fmt.Fprintln(w, "# EOF")
 	return nil
