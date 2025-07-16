@@ -3,7 +3,9 @@ package query
 import (
 	"fmt"
 	"io"
+	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,60 +54,115 @@ func printEvent(e *auditv1.Event) string {
 	return pterm.Sprintf("[ %s ][ %s ][ %3s ] %s [%s]%s", printTime(e.RequestReceivedTimestamp.Time), pterm.NewStyle(pterm.FgLightWhite).Sprintf("%6s", strings.ToUpper(e.Verb)), printResponseCode(e.ResponseStatus.Code), printRequestURI(e.RequestURI), printUser(e), printElapsedTime(e))
 }
 
-func printOpenMetricsCounts(events []*auditv1.Event, w io.Writer) error {
-	counts := map[string]int{}
+func printOpenmetrics(events []*auditv1.Event, w io.Writer) error {
+	fmt.Fprintln(w, "# TYPE audit_event_duration_seconds histogram")
 
-	for _, e := range events {
-		user := e.User.Username
-		verb := e.Verb
-		code := e.ResponseStatus.Code
+	// define buckets (sec)
+	buckets := []float64{0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10} // plus +Inf automatically
 
-		key := fmt.Sprintf("%s|%s|%d", user, verb, code)
-		counts[key]++
+	type seriesKey struct {
+		user, verb, resource, subresource, name, namespace, stage string
+		code                                                      int32
+		timestamp                                                 int64
+	}
+	// per-series storage
+	type hist struct {
+		buckets []uint64
+		sum     float64
+		count   uint64
 	}
 
-	fmt.Fprintf(w, "# TYPE audit_event_total counter\n")
-	for key, count := range counts {
-		parts := strings.Split(key, "|")
-		user, verb, code := parts[0], parts[1], parts[2]
+	data := map[seriesKey]*hist{}
 
-		fmt.Fprintf(w, "audit_event_total{user=\"%s\",verb=\"%s\",code=\"%s\"} %d\n", user, verb, code, count)
-	}
-	return nil
-}
-
-func printOpenMetricsTimestamps(events []*auditv1.Event, w io.Writer) error {
-	fmt.Fprintln(w, "# TYPE audit_event_timestamp gauge")
-
-	// Sort events by RequestReceivedTimestamp
-	sort.Slice(events, func(i, j int) bool {
-		return events[i].RequestReceivedTimestamp.Time.Before(events[j].RequestReceivedTimestamp.Time)
-	})
-
+	// agg every event into buckets
 	for _, e := range events {
-		user := e.User.Username
-		verb := e.Verb
-		code := e.ResponseStatus.Code
-		timeStamp := e.RequestReceivedTimestamp.Time.Unix()
-		stage := e.Stage
-		// duration := e.StageTimestamp.Sub(e.RequestReceivedTimestamp.Time).Seconds()
-
-		resource := ""
-		subresource := ""
-		name := ""
-		namespace := ""
-		uid := ""
-
-		if e.ObjectRef != nil {
-			resource = e.ObjectRef.Resource
-			name = e.ObjectRef.Name
-			namespace = e.ObjectRef.Namespace
-			subresource = e.ObjectRef.Subresource
-			uid = string(e.ObjectRef.UID)
+		k := seriesKey{
+			user:      e.User.Username,
+			verb:      e.Verb,
+			stage:     string(e.Stage),
+			code:      e.ResponseStatus.Code,
+			timestamp: e.RequestReceivedTimestamp.Time.Unix(),
+		}
+		if ref := e.ObjectRef; ref != nil {
+			k.resource = ref.Resource
+			k.subresource = ref.Subresource
+			k.name = ref.Name
+			k.namespace = ref.Namespace
 		}
 
-		fmt.Fprintf(w, "audit_event_duration_seconds{user=\"%s\",verb=\"%s\",resource=\"%s\",subresource=\"%s\",name=\"%s\",namespace=\"%s\",uid=\"%s\",stage=\"%s\",code=\"%d\"} 1 %d\n", user, verb, resource, subresource, name, namespace, uid, stage, code, timeStamp)
+		h := data[k]
+		if h == nil {
+			h = &hist{buckets: make([]uint64, len(buckets)+1)} // +1 for +Inf
+			data[k] = h
+		}
+		duration := e.StageTimestamp.Sub(e.RequestReceivedTimestamp.Time).Seconds()
+		h.sum += duration
+		h.count++
+
+		// find first bucket >= duration
+		idx := len(buckets) // default = +Inf
+		for i, b := range buckets {
+			if duration <= b {
+				idx = i
+				break
+			}
+		}
+		h.buckets[idx]++
 	}
+
+	// sort: labels → timestamp
+	keys := make([]seriesKey, 0, len(data))
+	for k := range data {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		a, b := keys[i], keys[j]
+		if a.user != b.user {
+			return a.user < b.user
+		}
+		if a.verb != b.verb {
+			return a.verb < b.verb
+		}
+		if a.resource != b.resource {
+			return a.resource < b.resource
+		}
+		if a.subresource != b.subresource {
+			return a.subresource < b.subresource
+		}
+		if a.name != b.name {
+			return a.name < b.name
+		}
+		if a.namespace != b.namespace {
+			return a.namespace < b.namespace
+		}
+		if a.stage != b.stage {
+			return a.stage < b.stage
+		}
+		if a.code != b.code {
+			return a.code < b.code
+		}
+		return a.timestamp < b.timestamp
+	})
+
+	// emit metrics
+	for _, k := range keys {
+		h := data[k]
+		// cumulative count
+		cum := uint64(0)
+		for i, upper := range append(buckets, math.Inf(1)) {
+			cum += h.buckets[i]
+			// bucket
+			fmt.Fprintf(w, "audit_event_duration_seconds_bucket{user=%q,verb=%q,resource=%q,subresource=%q,name=%q,namespace=%q,stage=%q,code=%q,le=%q} %d %d\n",
+				k.user, k.verb, k.resource, k.subresource, k.name, k.namespace, k.stage, strconv.Itoa(int(k.code)), fmt.Sprintf("%g", upper), cum, k.timestamp)
+		}
+		// sum
+		fmt.Fprintf(w, "audit_event_duration_seconds_sum{user=%q,verb=%q,resource=%q,subresource=%q,name=%q,namespace=%q,stage=%q,code=%q} %.6f %d\n",
+			k.user, k.verb, k.resource, k.subresource, k.name, k.namespace, k.stage, strconv.Itoa(int(k.code)), h.sum, k.timestamp)
+		// count
+		fmt.Fprintf(w, "audit_event_duration_seconds_count{user=%q,verb=%q,resource=%q,subresource=%q,name=%q,namespace=%q,stage=%q,code=%q} %d %d\n",
+			k.user, k.verb, k.resource, k.subresource, k.name, k.namespace, k.stage, strconv.Itoa(int(k.code)), h.count, k.timestamp)
+	}
+
 	fmt.Fprintln(w, "# EOF")
 	return nil
 }

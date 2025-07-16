@@ -36,7 +36,6 @@ type Options struct {
 	names           []string
 	users           []string
 	uids            []string
-	filenames       []string
 	failedOnly      bool
 	httpStatusCodes []int32
 	output          string
@@ -264,10 +263,8 @@ func (o Options) Run(ctx context.Context) error {
 	}
 
 	switch o.output {
-	case "openmetricsCount":
-		return printOpenMetricsCounts(events, os.Stdout)
-	case "openmetricsTime":
-		return printOpenMetricsTimestamps(events, os.Stdout)
+	case "openmetrics":
+		return printOpenmetrics(events, os.Stdout)
 	default:
 		for i, e := range events {
 			if o.limit > 0 && i > int(o.limit) {
