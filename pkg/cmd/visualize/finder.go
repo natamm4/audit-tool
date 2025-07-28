@@ -36,7 +36,7 @@ func FindMustGatherFiles(root string) (*FinderResult, error) {
 			}
 			result.MetricsFile = path
 		}
-		// Find alerts.openmetrics
+		// Find alerts
 		if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.Contains(path, "monitoring/alert_metrics") {
 			result.AlertsFile = path
 		}

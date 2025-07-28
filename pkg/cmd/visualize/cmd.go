@@ -192,28 +192,28 @@ func (o Options) Run(ctx context.Context) error {
 	os.Chmod(auditFile, 0644)
 
 	// Use metrics and alerts file paths from finder
-	metricsFile := finderResult.MetricsFile
-	if metricsFile == "" {
-		return fmt.Errorf("could not find etcd_info/metrics.openmetrics in must-gather")
-	}
-	destMetricsFile := filepath.Join(workingDir, "metrics.openmetrics")
-	if contents, err := os.ReadFile(metricsFile); err == nil {
-		err = os.WriteFile(destMetricsFile, contents, 0644)
-		if err != nil {
-			return err
-		}
-	}
-	// alertsFile := finderResult.AlertsFile
-	// if alertsFile == "" {
-	// 	return fmt.Errorf("could not find alerts.openmetrics in must-gather")
+	// metricsFile := finderResult.MetricsFile
+	// if metricsFile == "" {
+	// 	return fmt.Errorf("could not find etcd_info/metrics.openmetrics in must-gather")
 	// }
-	// destAlertsFile := filepath.Join(workingDir, "alerts.openmetrics")
-	// if contents, err := os.ReadFile(alertsFile); err == nil {
-	// 	err = os.WriteFile(destAlertsFile, contents, 0644)
+	// destMetricsFile := filepath.Join(workingDir, "metrics.openmetrics")
+	// if contents, err := os.ReadFile(metricsFile); err == nil {
+	// 	err = os.WriteFile(destMetricsFile, contents, 0644)
 	// 	if err != nil {
 	// 		return err
 	// 	}
 	// }
+	alertsFile := finderResult.AlertsFile
+	if alertsFile == "" {
+		return fmt.Errorf("could not find monitoring/alert_metrics/metrics.openmetrics in must-gather")
+	}
+	destAlertsFile := filepath.Join(workingDir, "metrics.openmetrics")
+	if contents, err := os.ReadFile(alertsFile); err == nil {
+		err = os.WriteFile(destAlertsFile, contents, 0644)
+		if err != nil {
+			return err
+		}
+	}
 
 	const promImage = "docker.io/prom/prometheus"
 
@@ -238,7 +238,7 @@ func (o Options) Run(ctx context.Context) error {
 	// }
 
 	// Convert all OpenMetrics files to Prometheus blocks
-	files := []string{auditFile, metricsFile}
+	files := []string{auditFile, alertsFile}
 	for _, input := range files {
 		if err := prometheusMetrics(input, workingDir, promImage); err != nil {
 			return err
