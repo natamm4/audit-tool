@@ -19,6 +19,7 @@ import (
 	"github.com/natamm4/audit-tool/pkg/audit/filter"
 )
 
+//go:embed configs/prometheus.yml
 var prometheusConfig embed.FS
 
 type Options struct {
