@@ -286,6 +286,14 @@ func (o Options) Run(ctx context.Context) error {
 
 // Update prometheusMetrics to return error
 func prometheusMetrics(inputFile, workingDir string, promImage string) error {
+	info, err := os.Stat(inputFile)
+	if err != nil {
+		return err
+	}
+	if info.Size() == 0 {
+		return fmt.Errorf("input file %s is empty", inputFile)
+	}
+
 	outputParentDir := filepath.Join(workingDir, "prom-blocks")
 	if err := os.MkdirAll(outputParentDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory for prom-blocks: %v", err)
