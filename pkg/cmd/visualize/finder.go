@@ -11,7 +11,6 @@ import (
 type FinderResult struct {
 	AuditLogDir string
 	MetricsFile string
-	AlertsFile  string
 }
 
 // FindMustGatherFiles recursively searches for audit logs and metrics file
@@ -26,19 +25,9 @@ func FindMustGatherFiles(root string) (*FinderResult, error) {
 		if info.IsDir() && strings.HasSuffix(path, "audit_logs/kube-apiserver") {
 			result.AuditLogDir = path
 		}
-		// Find metrics.openmetrics or metrics.openmetrics.gz file inside any etcd_info directory
-		if info.Mode().IsRegular() && (info.Name() == "metrics.openmetrics" || info.Name() == "metrics.openmetrics.gz") && strings.Contains(path, "etcd_info") {
-			if info.Name() == "metrics.openmetrics.gz" {
-				if err := GunzipFile(path); err != nil {
-					return err
-				}
-				path = strings.TrimSuffix(path, ".gz")
-			}
-			result.MetricsFile = path
-		}
-		// Find alerts
+		// Find etcd and alert metrics file
 		if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.Contains(path, "monitoring/alert_metrics") {
-			result.AlertsFile = path
+			result.MetricsFile = path
 		}
 		return nil
 	})

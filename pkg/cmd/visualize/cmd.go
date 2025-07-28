@@ -194,21 +194,21 @@ func (o Options) Run(ctx context.Context) error {
 	var files []string
 	files = append(files, auditFile)
 
-	// Use metrics and alerts file path from finder
-	alertsFile := finderResult.AlertsFile
-	if alertsFile == "" {
-		destAlertsFile := filepath.Join(workingDir, "metrics.openmetrics")
-		if contents, err := os.ReadFile(alertsFile); err == nil {
-			err = os.WriteFile(destAlertsFile, contents, 0644)
+	// Use metrics file path from finder
+	metricsFile := finderResult.MetricsFile
+	if metricsFile == "" {
+		destMetricsFile := filepath.Join(workingDir, "metrics.openmetrics")
+		if contents, err := os.ReadFile(metricsFile); err == nil {
+			err = os.WriteFile(destMetricsFile, contents, 0644)
 			if err != nil {
 				return err
 			}
-			files = append(files, destAlertsFile)
+			files = append(files, destMetricsFile)
 		} else {
-			log.Printf("Warning: could not read metrics/alerts file: %v", err)
+			log.Printf("Warning: could not read metrics file: %v", err)
 		}
 	} else {
-		log.Println("Warning: alerts + metrics file not found; skipping alerts + metrics.")
+		log.Println("Warning: metrics file not found; skipping metrics.")
 	}
 
 	const promImage = "docker.io/prom/prometheus"
