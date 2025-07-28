@@ -191,28 +191,24 @@ func (o Options) Run(ctx context.Context) error {
 	}
 	os.Chmod(auditFile, 0644)
 
-	// Use metrics and alerts file paths from finder
-	// metricsFile := finderResult.MetricsFile
-	// if metricsFile == "" {
-	// 	return fmt.Errorf("could not find etcd_info/metrics.openmetrics in must-gather")
-	// }
-	// destMetricsFile := filepath.Join(workingDir, "metrics.openmetrics")
-	// if contents, err := os.ReadFile(metricsFile); err == nil {
-	// 	err = os.WriteFile(destMetricsFile, contents, 0644)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	var files []string
+	files = append(files, auditFile)
+
+	// Use metrics and alerts file path from finder
 	alertsFile := finderResult.AlertsFile
 	if alertsFile == "" {
-		return fmt.Errorf("could not find monitoring/alert_metrics/metrics.openmetrics in must-gather")
-	}
-	destAlertsFile := filepath.Join(workingDir, "metrics.openmetrics")
-	if contents, err := os.ReadFile(alertsFile); err == nil {
-		err = os.WriteFile(destAlertsFile, contents, 0644)
-		if err != nil {
-			return err
+		destAlertsFile := filepath.Join(workingDir, "metrics.openmetrics")
+		if contents, err := os.ReadFile(alertsFile); err == nil {
+			err = os.WriteFile(destAlertsFile, contents, 0644)
+			if err != nil {
+				return err
+			}
+			files = append(files, destAlertsFile)
+		} else {
+			log.Printf("Warning: could not read metrics/alerts file: %v", err)
 		}
+	} else {
+		log.Println("Warning: alerts + metrics file not found; skipping alerts + metrics.")
 	}
 
 	const promImage = "docker.io/prom/prometheus"
@@ -238,10 +234,10 @@ func (o Options) Run(ctx context.Context) error {
 	// }
 
 	// Convert all OpenMetrics files to Prometheus blocks
-	files := []string{auditFile, alertsFile}
 	for _, input := range files {
 		if err := prometheusMetrics(input, workingDir, promImage); err != nil {
-			return err
+			log.Printf("Warning: skipping file %s due to error: %v", input, err)
+
 		}
 	}
 
@@ -273,7 +269,6 @@ func (o Options) Run(ctx context.Context) error {
 		"--entrypoint", "prometheus",
 		promImage,
 		"--storage.tsdb.path=/prometheus/prom-blocks")
-	// fmt.Println("I'M ABOUT TO RUN", cmd.String())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = os.Environ()
@@ -311,7 +306,7 @@ func prometheusMetrics(inputFile, workingDir string, promImage string) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("failed to run promtool: %v", err)
+		return fmt.Errorf("failed to run promtool for %s: %v", inputFile, err)
 	}
 	return nil
 }
