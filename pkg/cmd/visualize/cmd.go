@@ -203,17 +203,17 @@ func (o Options) Run(ctx context.Context) error {
 			return err
 		}
 	}
-	alertsFile := finderResult.AlertsFile
-	if alertsFile == "" {
-		return fmt.Errorf("could not find alerts.openmetrics in must-gather")
-	}
-	destAlertsFile := filepath.Join(workingDir, "alerts.openmetrics")
-	if contents, err := os.ReadFile(alertsFile); err == nil {
-		err = os.WriteFile(destAlertsFile, contents, 0644)
-		if err != nil {
-			return err
-		}
-	}
+	// alertsFile := finderResult.AlertsFile
+	// if alertsFile == "" {
+	// 	return fmt.Errorf("could not find alerts.openmetrics in must-gather")
+	// }
+	// destAlertsFile := filepath.Join(workingDir, "alerts.openmetrics")
+	// if contents, err := os.ReadFile(alertsFile); err == nil {
+	// 	err = os.WriteFile(destAlertsFile, contents, 0644)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	const promImage = "docker.io/prom/prometheus"
 
