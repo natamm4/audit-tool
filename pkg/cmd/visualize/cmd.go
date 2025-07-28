@@ -197,6 +197,8 @@ func (o Options) Run(ctx context.Context) error {
 	// Use metrics file path from finder
 	metricsFile := finderResult.MetricsFile
 	if metricsFile == "" {
+		log.Printf("Warning: could not read metrics file: %v", err)
+	} else {
 		destMetricsFile := filepath.Join(workingDir, "metrics.openmetrics")
 		if contents, err := os.ReadFile(metricsFile); err == nil {
 			err = os.WriteFile(destMetricsFile, contents, 0644)
@@ -204,11 +206,7 @@ func (o Options) Run(ctx context.Context) error {
 				return err
 			}
 			files = append(files, destMetricsFile)
-		} else {
-			log.Printf("Warning: could not read metrics file: %v", err)
 		}
-	} else {
-		log.Println("Warning: metrics file not found; skipping metrics.")
 	}
 
 	const promImage = "docker.io/prom/prometheus"
