@@ -46,7 +46,7 @@ type Options struct {
 	stats bool
 }
 
-func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
+func NewCommand(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
 	options := &Options{}
 	cmd := &cobra.Command{
 		Use:   "query",
@@ -54,7 +54,7 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(options.Validate())
 			cmdutil.CheckErr(options.Complete())
-			cmdutil.CheckErr(options.Run(ctx))
+			cmdutil.CheckErr(options.Run(cmd.Context()))
 		},
 	}
 

@@ -67,7 +67,7 @@ func (*DefaultRemoteExecutor) Execute(method string, url *url.URL, config *restc
 	})
 }
 
-func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
+func NewCommand(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
 	options := &Options{
 		StreamOptions: StreamOptions{
 			IOStreams: streams,
@@ -82,7 +82,7 @@ func NewCommand(ctx context.Context, f cmdutil.Factory, streams genericclioption
 			argsLenAtDash := cmd.ArgsLenAtDash()
 			cmdutil.CheckErr(options.Validate())
 			cmdutil.CheckErr(options.Complete(f, cmd, args, argsLenAtDash))
-			cmdutil.CheckErr(options.Run(ctx))
+			cmdutil.CheckErr(options.Run(cmd.Context()))
 		},
 	}
 
