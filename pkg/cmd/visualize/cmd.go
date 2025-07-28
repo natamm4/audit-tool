@@ -2,6 +2,7 @@ package visualize
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
 	"os"
@@ -17,6 +18,8 @@ import (
 
 	"github.com/natamm4/audit-tool/pkg/audit/filter"
 )
+
+var prometheusConfig embed.FS
 
 type Options struct {
 	readDirectory string
@@ -213,35 +216,16 @@ func (o Options) Run(ctx context.Context) error {
 
 	const promImage = "docker.io/prom/prometheus"
 
-	// Get the directory where the current executable is located
-	exePath, err := os.Executable()
+	// Copy prometheus.yml to the working directory
+	destPrometheusConfigPath := filepath.Join(workingDir, "prometheus.yml")
+	data, err := prometheusConfig.ReadFile("configs/prometheus.yml")
 	if err != nil {
-		return fmt.Errorf("failed to get executable path: %v", err)
+		return fmt.Errorf("failed to read embedded prometheus.yml: %v", err)
 	}
-	exeDir := filepath.Dir(exePath)
-
-	// Construct the path to the prometheus.yml file relative to the executable
-	// Assuming 'configs' is a sibling directory to 'cmd' or the project root.
-	// Adjust this path if your 'configs' directory is nested differently.
-	projectRoot := filepath.Join(exeDir, "..", "..") // Adjust if your 'cmd/audit-tool' is not in a 'cmd' dir
-	sourcePrometheusConfigPath := filepath.Join(projectRoot, "configs", "prometheus.yml")
-
-	// Ensure the source config file exists
-	if _, err := os.Stat(sourcePrometheusConfigPath); os.IsNotExist(err) {
-		return fmt.Errorf("prometheus.yml not found at %s. Please create it", sourcePrometheusConfigPath)
-	}
-
-	// Copy the prometheus.yml from source to the workingDir
-	destPrometheusConfigFile := filepath.Join(workingDir, "prometheus.yml")
-	contents, err := os.ReadFile(sourcePrometheusConfigPath)
+	err = os.WriteFile(destPrometheusConfigPath, data, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to read prometheus.yml from %s: %v", sourcePrometheusConfigPath, err)
+		return fmt.Errorf("failed to write prometheus.yml to temp directory: %v", err)
 	}
-	err = os.WriteFile(destPrometheusConfigFile, contents, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to copy prometheus.yml to working directory %s: %v", destPrometheusConfigFile, err)
-	}
-	log.Printf("Copied prometheus.yml from %s to %s", sourcePrometheusConfigPath, destPrometheusConfigFile)
 
 	// entries, err := os.ReadDir(workingDir)
 	// if err != nil {
