@@ -2,7 +2,6 @@ package visualize
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -28,6 +27,8 @@ func FindMustGatherFiles(root string) (*FinderResult, error) {
 		// Find etcd and alert metrics file
 		if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.Contains(path, "monitoring/alert_metrics") {
 			result.MetricsFile = path
+		} else if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.Contains(path, "etcd_info") {
+			result.MetricsFile = path
 		}
 		return nil
 	})
@@ -36,10 +37,4 @@ func FindMustGatherFiles(root string) (*FinderResult, error) {
 		return nil, err
 	}
 	return &result, nil
-}
-
-// GunzipFile runs the gunzip command to decompress a .gz file in place
-func GunzipFile(gzPath string) error {
-	cmd := exec.Command("gunzip", gzPath)
-	return cmd.Run()
 }
