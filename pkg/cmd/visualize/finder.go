@@ -30,10 +30,11 @@ func FindMustGatherFiles(root string) (*FinderResult, error) {
 			result.MetricsFile = path
 		} else if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.Contains(path, "etcd_info") {
 			result.MetricsFile = path
-		} else if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics.gz" && strings.Contains(path, "etcd_info") {
-			GunzipFile(path)
-			result.MetricsFile = strings.TrimSuffix(path, ".gz")
 		}
+		// } else if info.Mode().IsRegular() && info.Name() == "metrics.openmetrics" && strings.HasSuffix(path, ".gz") && strings.Contains(path, "etcd_info") {
+		// 	GunzipFile(path)
+		// 	result.MetricsFile = strings.TrimSuffix(path, ".gz")
+		// }
 		return nil
 	})
 
